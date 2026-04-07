@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Gatos · Tienda de comidas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: white;
+            font-family: system-ui, -apple-system, 'Segoe UI', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.8rem;
+        }
+        .game {
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+        }
+        .puntos-header {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 0.4rem 1rem;
+            margin-bottom: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 0px;
+        }
+        .puntos-header span:first-child {
+            font-size: 1.5rem;
+        }
+        .plato-area {
+            font-size: 3rem;
+            margin: 0.5rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .plato { font-size: 3.5rem; }
+        .comida { font-size: 3.2rem; min-width: 4rem; }
+        .duracion-badge {
+            font-size: 0.9rem;
+            background: #ffd966;
+            padding: 0.2rem 0.6rem;
+            margin-left: 0.5rem;
+            font-weight: bold;
+        }
+        button, .comida-dropdown-btn {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.8rem;
+            margin: 0.3rem;
+            background: #eee;
+            border: 1px solid #999;
+            cursor: pointer;
+            font-family: inherit;
+            touch-action: manipulation;
+        }
+        button:active { background: #ccc; }
+        
+        /* Estilos para el dropdown de comidas */
+        .dropdown-comida {
+            position: relative;
+            display: inline-block;
+            margin: 0.5rem 0;
+        }
+        .comida-dropdown-btn {
+            background: #ff9800;
+            color: black;
+            font-weight: bold;
+            padding: 0.6rem 1.2rem;
+            font-size: 1rem;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .comida-dropdown-btn:active {
+            background: #e68900;
+        }
+        .dropdown-contenido {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 250px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 10;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 5px;
+            border-radius: 8px;
+        }
+        .dropdown-contenido.show {
+            display: block;
+        }
+        .opcion-comida {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: background 0.1s;
+        }
+        .opcion-comida:active {
+            background: #f0f0f0;
+        }
+        .opcion-comida:last-child {
+            border-bottom: none;
+        }
+        .opcion-emoji {
+            font-size: 1.4rem;
+        }
+        .opcion-nombre {
+            flex: 1;
+            text-align: left;
+        }
+        .opcion-precio {
+            background: #ffd966;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .opcion-duracion {
+            font-size: 0.7rem;
+            color: #666;
+            min-width: 55px;
+            text-align: right;
+        }
+        .puntos-insuficientes {
+            opacity: 0.4;
+        }
+        
+        .gato-canvas-container {
+            margin: 0.5rem auto;
+            display: flex;
+            justify-content: center;
+        }
+        canvas {
+            display: block;
+            background: white;
+            width: 260px;
+            height: 260px;
+            box-shadow: none;
+            border: none;
+        }
+        .input-nombre { margin: 0.5rem 0; }
+        input {
+            font-size: 0.9rem;
+            padding: 0.4rem;
+            border: 1px solid #aaa;
+            background: white;
+        }
+        .coleccion {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            max-width: 100%;
+        }
+        .gato-coleccionado {
+            background: #fafafa;
+            border: 1px solid #ccc;
+            padding: 0.3rem;
+            text-align: center;
+            width: 85px;
+        }
+        .gato-coleccionado canvas {
+            width: 70px;
+            height: 70px;
+        }
+        .gato-coleccionado .nombre {
+            font-size: 0.65rem;
+            margin-top: 0.2rem;
+            font-weight: 500;
+        }
+        .rareza-texto {
+            font-size: 0.6rem;
+            font-weight: bold;
+            margin-top: 0.1rem;
+        }
+        hr { margin: 0.8rem 0; border-color: #ccc; }
+        .vacio-coleccion {
+            font-size: 0.8rem;
+            color: #666;
+            background: #f5f5f5;
+            padding: 0.3rem 1rem;
+        }
+        .mensaje {
+            background: #e8f0fe;
+            padding: 0.3rem;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .fusion-btn {
+            background: #ff9800;
+            color: black;
+            border: none;
+            font-weight: bold;
+        }
+        .minijuego-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        .modal-content {
+            background: white;
+            padding: 1rem;
+            text-align: center;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .menu-minijuego {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        .puntuacion-menu {
+            font-size: 1.1rem;
+            background: #ffd966;
+            padding: 0.3rem 1rem;
+            font-weight: bold;
+        }
+        .board {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
+        .card {
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            border: 2px solid #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .card img {
+            width: 72px;
+            height: 72px;
+            display: none;
+        }
+        .card.flipped img, .card.matched img {
+            display: block;
+        }
+        .card:not(.flipped):not(.matched)::before {
+            content: "?";
+            font-size: 2.5rem;
+            color: #555;
+        }
+        .card.matched {
+            background: #90EE90;
+            border-color: #2e7d32;
+        }
+        .card.wrong {
+            background: #ffcccc;
+            border-color: #c62828;
+        }
+        .modal button {
+            margin-top: 8px;
+            padding: 5px 12px;
+        }
+        .btn-par {
+            background: #4caf50;
+            color: white;
+            font-size: 1rem;
+            padding: 0.5rem 1.5rem;
+        }
+        .btn-gato-come {
+            background: #ff9800;
+            color: white;
+            font-size: 1rem;
+            padding: 0.5rem 1.5rem;
+        }
+        .volver-btn {
+            background: #999;
+        }
+        .victoria-mensaje {
+            background: #4caf50;
+            color: white;
+            padding: 0.4rem;
+            margin: 0.5rem 0;
+            font-weight: bold;
+        }
+        .puntos-victoria {
+            background: gold;
+            color: black;
+            padding: 0.3rem;
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        @media (max-width: 550px) {
+            .card { width: 70px; height: 70px; }
+            .card img { width: 62px; height: 62px; }
+            canvas { width: 220px; height: 220px; }
+            .dropdown-contenido {
+                min-width: 280px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        
+        /* Estilos para el minijuego Gato Come dentro del modal */
+        .gato-come-container {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 10px;
+        }
+        .gato-come-panel {
+            background: #2c2c2c;
+            color: #fff;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            border-radius: 20px 20px 0 0;
+            flex-wrap: wrap;
+        }
+        .gato-come-box {
+            background: #1e1e1e;
+            padding: 3px 10px;
+            border-radius: 30px;
+            display: flex;
+            gap: 5px;
+            font-size: .9rem;
+        }
+        .gato-come-btn {
+            background: #ff9800;
+            border: none;
+            font-weight: bold;
+            padding: 3px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 0;
+        }
+        .gato-come-status {
+            background: #111;
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-size: .7rem;
+        }
+        .gato-come-canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #fef9e8;
+            border-radius: 0 0 20px 20px;
+            cursor: grab;
+        }
+        .gato-come-canvas:active {
+            cursor: grabbing;
+        }
+        .gato-come-hint {
+            text-align: center;
+            margin-top: 8px;
+            font-size: .7rem;
+            background: #2c2c2c;
+            color: #ddd;
+            padding: 4px 10px;
+            border-radius: 40px;
+        }
+    </style>
+</head>
+<body>
+<div class="game">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div class="puntos-header">
+            <span>🪙</span>
+            <span id="puntosDisplay">0</span>
+        </div>
+        <div style="font-size: 0.7rem; background: #eee; padding: 0.2rem 0.5rem;">💡 Comida = duración (🐱 xN)</div>
+    </div>
+
+    <div class="plato-area">
+        <span class="plato">🍽️</span>
+        <span class="comida" id="comidaEnPlato">⚪</span>
+        <span id="duracionRestante" class="duracion-badge" style="display: none;"></span>
+    </div>
+
+    <div class="gato-canvas-container">
+        <canvas id="catCanvas" width="280" height="280"></canvas>
+    </div>
+
+    <!-- BOTÓN ÚNICO CON DROPDOWN DE COMIDAS -->
+    <div class="dropdown-comida">
+        <button class="comida-dropdown-btn" id="btnDesplegarComidas">🍽️ COMPRAR COMIDA ▼</button>
+        <div class="dropdown-contenido" id="dropdownComidas"></div>
+    </div>
+
+    <div id="zonaNombre" style="margin-top: 0.8rem; display: none;">
+        <div class="input-nombre">
+            <input type="text" id="nombreGatoInput" placeholder="nombre del gato" maxlength="20" autocomplete="off">
+            <button id="btnPonerNombre">PONER NOMBRE</button>
+        </div>
+    </div>
+
+    <div id="mensajeInfo" class="mensaje" style="display: none;"></div>
+    
+    <div style="margin: 0.5rem 0;">
+        <button id="btnFusionar" style="background: #ff9800;">✨ FUSIONAR (3 iguales)</button>
+        <button id="btnMinijuego" style="background: #4caf50; margin-left: 0.5rem;" disabled>🎮 MINIJUEGO (2+ gatos)</button>
+    </div>
+
+    <hr>
+    <div id="coleccionGatos" class="coleccion"></div>
+</div>
+
+<div id="modalJuego" class="modal">
+    <div class="modal-content" id="modalContent"></div>
+</div>
+
+<script>
+    (function(){
+        // ---------- ESTADO PRINCIPAL ----------
+        let comidaActualObj = null;       // { emoji, duracionMax, duracionRestante, precio, nombre }
+        let gatoPresente = null;
+        let coleccion = [];
+        let timeoutLlegada = null;
+        let puntos = 50;
+        
+        // ---------- CATÁLOGO DE COMIDAS ----------
+        const CATALOGO_COMIDAS = [
+            { emoji: "🍕", nombre: "Pizza", duracion: 1, precio: 5 },
+            { emoji: "🍔", nombre: "Hamburguesa", duracion: 1, precio: 5 },
+            { emoji: "🍎", nombre: "Manzana", duracion: 1, precio: 5 },
+            { emoji: "🍌", nombre: "Plátano", duracion: 1, precio: 5 },
+            { emoji: "🥪", nombre: "Sándwich", duracion: 1, precio: 5 },
+            { emoji: "🥨", nombre: "Pretzel", duracion: 1, precio: 5 },
+            { emoji: "🍣", nombre: "Sushi", duracion: 2, precio: 12 },
+            { emoji: "🍜", nombre: "Ramen", duracion: 2, precio: 12 },
+            { emoji: "🌮", nombre: "Taco", duracion: 2, precio: 12 },
+            { emoji: "🥗", nombre: "Ensalada", duracion: 2, precio: 12 },
+            { emoji: "🍦", nombre: "Helado", duracion: 2, precio: 12 },
+            { emoji: "🥟", nombre: "Dumplings", duracion: 2, precio: 12 },
+            { emoji: "🥘", nombre: "Paella", duracion: 3, precio: 25 },
+            { emoji: "🍕👨‍👩‍👧", nombre: "Pizza familiar", duracion: 3, precio: 25 },
+            { emoji: "🍲", nombre: "Hot Pot", duracion: 3, precio: 25 },
+            { emoji: "🍛", nombre: "Curry", duracion: 3, precio: 25 },
+            { emoji: "🥩", nombre: "Parrillada", duracion: 3, precio: 25 },
+            { emoji: "🎂", nombre: "Pastel mágico", duracion: 5, precio: 50 },
+            { emoji: "🪄", nombre: "Caldero", duracion: 5, precio: 50 },
+            { emoji: "🌟", nombre: "Cometa", duracion: 5, precio: 50 },
+            { emoji: "🦞", nombre: "Mariscada", duracion: 5, precio: 50 },
+            { emoji: "🍖", nombre: "Banquete", duracion: 5, precio: 50 },
+            { emoji: "🥧", nombre: "Tarta gigante", duracion: 5, precio: 50 },
+            { emoji: "👑", nombre: "Festín real", duracion: 10, precio: 100 },
+            { emoji: "🔥", nombre: "Fénix asado", duracion: 10, precio: 100 },
+            { emoji: "🌈", nombre: "Arcoíris celestial", duracion: 10, precio: 100 },
+            { emoji: "⭐", nombre: "Comida estelar", duracion: 10, precio: 100 }
+        ];
+        
+        // DOM
+        const puntosDisplay = document.getElementById("puntosDisplay");
+        const comidaEnPlatoSpan = document.getElementById("comidaEnPlato");
+        const duracionRestanteSpan = document.getElementById("duracionRestante");
+        const dropdownComidas = document.getElementById("dropdownComidas");
+        const btnDesplegarComidas = document.getElementById("btnDesplegarComidas");
+        const zonaNombre = document.getElementById("zonaNombre");
+        const nombreGatoInput = document.getElementById("nombreGatoInput");
+        const btnPonerNombre = document.getElementById("btnPonerNombre");
+        const coleccionDiv = document.getElementById("coleccionGatos");
+        const mensajeInfoDiv = document.getElementById("mensajeInfo");
+        const btnFusionar = document.getElementById("btnFusionar");
+        const btnMinijuego = document.getElementById("btnMinijuego");
+        const canvas = document.getElementById('catCanvas');
+        const ctx = canvas.getContext('2d');
+        const modal = document.getElementById("modalJuego");
+        const modalContent = document.getElementById("modalContent");
+        
+        canvas.width = 280; canvas.height = 280;
+        
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.dropdown-comida');
+            if (!dropdown.contains(event.target)) {
+                dropdownComidas.classList.remove('show');
+            }
+        });
+        
+        // Desplegar/cerrar dropdown
+        btnDesplegarComidas.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownComidas.classList.toggle('show');
+            renderizarDropdownComidas();
+        });
+        
+        // ---------- RAREZAS Y GATOS ----------
+        const RAREZAS = [
+            { nombre: "Común", min: 50, max: 60, numColores: 1 },
+            { nombre: "Medio", min: 60, max: 70, numColores: 2 },
+            { nombre: "Bueno", min: 70, max: 80, numColores: 3 },
+            { nombre: "Épico", min: 80, max: 90, numColores: 5 },
+            { nombre: "Legendario", min: 90, max: 100, numColores: 20 }
+        ];
+        const PALETA_VIVA = ["#FF0000","#00FF00","#0000FF","#FFFF00","#FF00FF","#00FFFF","#FFA500","#FF1493","#7FFF00","#8A2BE2","#DC143C","#00CED1","#FFD700","#ADFF2F","#FF4500","#1E90FF","#32CD32","#FF69B4","#9ACD32","#FF6347","#40E0D0","#EE82EE","#F0E68C","#DDA0DD"];
+        const PARTES = ["cabeza","orejaIzq","orejaDer","interiorOreja","cuerpo","pataIzq","pataDer","cola","sombreroAla","sombreroCopa","sombreroTapa","cinta","mejillaIzq","mejillaDer","pupila","nariz","bigote","ceja","bocaColor"];
+        function colorAleatorioVivo() { return PALETA_VIVA[Math.floor(Math.random() * PALETA_VIVA.length)]; }
+        function generarColoresPorPuntuacion(puntuacion) {
+            let rareza = RAREZAS.find(r => puntuacion >= r.min && puntuacion < r.max) || RAREZAS[RAREZAS.length-1];
+            const maxColores = rareza.numColores;
+            let coloresUsados = [], colores = {};
+            for (let parte of PARTES) {
+                let color;
+                if (rareza.nombre === "Legendario") color = colorAleatorioVivo();
+                else if (rareza.nombre === "Épico") {
+                    if (coloresUsados.length < maxColores && (coloresUsados.length === 0 || Math.random() > 0.4)) {
+                        color = colorAleatorioVivo();
+                        if (!coloresUsados.includes(color)) coloresUsados.push(color);
+                    } else color = coloresUsados[Math.floor(Math.random() * coloresUsados.length)];
+                } else {
+                    if (coloresUsados.length < maxColores) { color = colorAleatorioVivo(); coloresUsados.push(color); }
+                    else color = coloresUsados[Math.floor(Math.random() * coloresUsados.length)];
+                }
+                colores[parte] = color;
+            }
+            if (rareza.nombre === "Común" && coloresUsados.length > 0) { let uni = coloresUsados[0]; for(let p of PARTES) colores[p] = uni; }
+            else if (rareza.nombre === "Medio" && coloresUsados.length === 2) { for(let i=0;i<PARTES.length;i++) colores[PARTES[i]] = i < PARTES.length/2 ? coloresUsados[0] : coloresUsados[1]; }
+            else if (rareza.nombre === "Bueno" && coloresUsados.length === 3) { for(let i=0;i<PARTES.length;i++) colores[PARTES[i]] = coloresUsados[i%3]; }
+            colores.ojoBlanco = "#FFFFFF";
+            return colores;
+        }
+        function obtenerRarezaPorPuntuacion(punt) { for(let r of RAREZAS) if(punt>=r.min && punt<r.max) return r.nombre; return "Legendario"; }
+        function generarGatoAleatorio() {
+            let rand = Math.random()*100, punt;
+            if(rand<50) punt=50+Math.random()*10; else if(rand<75) punt=60+Math.random()*10; else if(rand<90) punt=70+Math.random()*10; else if(rand<97) punt=80+Math.random()*10; else punt=90+Math.random()*10;
+            punt = Math.min(99.9, Math.max(50, punt));
+            const colores = generarColoresPorPuntuacion(punt);
+            const rareza = obtenerRarezaPorPuntuacion(punt);
+            return { colores, rareza, puntuacion: Math.round(punt) };
+        }
+        function generarGatoConPuntuacion(punt) { return { colores: generarColoresPorPuntuacion(punt), rareza: obtenerRarezaPorPuntuacion(punt), puntuacion: punt }; }
+        
+        function dibujarGatoEnContexto(ctxDest, w, h, colores) {
+            if(!colores) return;
+            ctxDest.save(); ctxDest.clearRect(0,0,w,h);
+            const sx = w/500, sy = h/500;
+            ctxDest.scale(sx,sy);
+            ctxDest.lineWidth = 2.5; ctxDest.strokeStyle = "#000";
+            ctxDest.beginPath(); ctxDest.arc(250,260,85,0,Math.PI*2); ctxDest.fillStyle = colores.cabeza; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(185,205); ctxDest.lineTo(165,140); ctxDest.lineTo(220,185); ctxDest.closePath(); ctxDest.fillStyle = colores.orejaIzq; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(315,205); ctxDest.lineTo(335,140); ctxDest.lineTo(280,185); ctxDest.closePath(); ctxDest.fillStyle = colores.orejaDer; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(190,200); ctxDest.lineTo(176,155); ctxDest.lineTo(215,188); ctxDest.closePath(); ctxDest.fillStyle = colores.interiorOreja; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(310,200); ctxDest.lineTo(324,155); ctxDest.lineTo(285,188); ctxDest.closePath(); ctxDest.fill(); ctxDest.stroke();
+            ctxDest.fillStyle = colores.ojoBlanco; ctxDest.beginPath(); ctxDest.ellipse(215,245,14,18,0,0,Math.PI*2); ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(285,245,14,18,0,0,Math.PI*2); ctxDest.fill(); ctxDest.stroke();
+            ctxDest.fillStyle = colores.pupila; ctxDest.beginPath(); ctxDest.ellipse(215,245,6,12,0,0,Math.PI*2); ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(285,245,6,12,0,0,Math.PI*2); ctxDest.fill(); ctxDest.stroke();
+            ctxDest.fillStyle = "#FFF"; ctxDest.beginPath(); ctxDest.arc(211,239,3,0,Math.PI*2); ctxDest.fill(); ctxDest.beginPath(); ctxDest.arc(281,239,3,0,Math.PI*2); ctxDest.fill();
+            ctxDest.beginPath(); ctxDest.moveTo(245,275); ctxDest.lineTo(255,275); ctxDest.lineTo(250,283); ctxDest.closePath(); ctxDest.fillStyle = colores.nariz; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(250,283); ctxDest.quadraticCurveTo(240,295,230,288); ctxDest.moveTo(250,283); ctxDest.quadraticCurveTo(260,295,270,288); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(180,268); ctxDest.lineTo(140,262); ctxDest.moveTo(180,275); ctxDest.lineTo(138,278); ctxDest.moveTo(182,282); ctxDest.lineTo(145,292);
+            ctxDest.moveTo(320,268); ctxDest.lineTo(360,262); ctxDest.moveTo(320,275); ctxDest.lineTo(362,278); ctxDest.moveTo(318,282); ctxDest.lineTo(355,292); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(250,370,95,70,0,0,Math.PI*2); ctxDest.fillStyle = colores.cuerpo; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(205,405,28,38,-0.2,0,Math.PI*2); ctxDest.fillStyle = colores.pataIzq; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(295,405,28,38,0.2,0,Math.PI*2); ctxDest.fillStyle = colores.pataDer; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(345,380); ctxDest.quadraticCurveTo(390,360,380,410); ctxDest.quadraticCurveTo(370,430,355,415); ctxDest.fillStyle = colores.cola; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(250,150,105,28,0,0,Math.PI*2); ctxDest.fillStyle = colores.sombreroAla; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.rect(195,70,110,82); ctxDest.fillStyle = colores.sombreroCopa; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.ellipse(250,70,57,18,0,0,Math.PI*2); ctxDest.fillStyle = colores.sombreroTapa; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.rect(195,122,110,14); ctxDest.fillStyle = colores.cinta; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.arc(195,278,8,0,Math.PI*2); ctxDest.fillStyle = colores.mejillaIzq; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.arc(305,278,8,0,Math.PI*2); ctxDest.fillStyle = colores.mejillaDer; ctxDest.fill(); ctxDest.stroke();
+            ctxDest.beginPath(); ctxDest.moveTo(198,222); ctxDest.quadraticCurveTo(210,215,225,221); ctxDest.moveTo(275,221); ctxDest.quadraticCurveTo(290,215,302,222); ctxDest.stroke();
+            ctxDest.restore();
+        }
+        function dibujarGatoActual(colores) { if(colores) dibujarGatoEnContexto(ctx,280,280,colores); else ctx.clearRect(0,0,280,280); }
+        function limpiarCanvas() { ctx.clearRect(0,0,280,280); }
+        function refrescarGatoEnCanvas() { if(gatoPresente?.colores) dibujarGatoActual(gatoPresente.colores); else limpiarCanvas(); }
+        
+        function actualizarPuntosUI() { puntosDisplay.innerText = puntos; }
+        function actualizarPlatoUI() {
+            if(comidaActualObj && comidaActualObj.duracionRestante > 0) {
+                comidaEnPlatoSpan.textContent = comidaActualObj.emoji;
+                duracionRestanteSpan.style.display = "inline-block";
+                duracionRestanteSpan.textContent = `🐱 x${comidaActualObj.duracionRestante}`;
+            } else {
+                comidaEnPlatoSpan.textContent = "⚪";
+                duracionRestanteSpan.style.display = "none";
+                comidaActualObj = null;
+            }
+        }
+        
+        function renderizarDropdownComidas() {
+            dropdownComidas.innerHTML = "";
+            for(let item of CATALOGO_COMIDAS) {
+                const opcion = document.createElement("div");
+                opcion.className = "opcion-comida";
+                if(puntos < item.precio) opcion.classList.add("puntos-insuficientes");
+                opcion.innerHTML = `
+                    <span class="opcion-emoji">${item.emoji}</span>
+                    <span class="opcion-nombre">${item.nombre}</span>
+                    <span class="opcion-precio">${item.precio}🪙</span>
+                    <span class="opcion-duracion">🐱x${item.duracion}</span>
+                `;
+                opcion.onclick = (e) => {
+                    e.stopPropagation();
+                    comprarComida(item);
+                    dropdownComidas.classList.remove('show');
+                };
+                dropdownComidas.appendChild(opcion);
+            }
+        }
+        
+        function comprarComida(item) {
+            if(gatoPresente !== null) { mostrarMensaje("❌ Hay un gato en el plato, espera a que se vaya"); return; }
+            if(puntos < item.precio) { mostrarMensaje("💰 Puntos insuficientes"); return; }
+            puntos -= item.precio;
+            actualizarPuntosUI();
+            comidaActualObj = {
+                emoji: item.emoji,
+                duracionMax: item.duracion,
+                duracionRestante: item.duracion,
+                precio: item.precio,
+                nombre: item.nombre
+            };
+            actualizarPlatoUI();
+            cancelarTimer();
+            if(!gatoPresente) programarLlegada();
+            mostrarMensaje(`🍽️ ¡${item.nombre} comprada! Atrae ${item.duracion} gatos.`);
+            renderizarDropdownComidas();
+        }
+        
+        function consumirDuracionComida() {
+            if(comidaActualObj && comidaActualObj.duracionRestante > 0) {
+                comidaActualObj.duracionRestante--;
+                if(comidaActualObj.duracionRestante <= 0) {
+                    comidaActualObj = null;
+                    actualizarPlatoUI();
+                    mostrarMensaje("😋 ¡La comida se acabó! Compra más con puntos.");
+                    cancelarTimer();
+                } else {
+                    actualizarPlatoUI();
+                }
+            }
+        }
+        
+        function mostrarMensaje(texto) {
+            mensajeInfoDiv.style.display = "block";
+            mensajeInfoDiv.textContent = texto;
+            setTimeout(() => mensajeInfoDiv.style.display = "none", 2800);
+        }
+        
+        function programarLlegada() {
+            cancelarTimer();
+            if(gatoPresente !== null) return;
+            if(!comidaActualObj || comidaActualObj.duracionRestante <= 0) return;
+            const delay = Math.floor(Math.random() * (7000 - 4000 + 1) + 4000);
+            timeoutLlegada = setTimeout(() => {
+                if(gatoPresente === null && comidaActualObj && comidaActualObj.duracionRestante > 0) {
+                    const nuevo = generarGatoAleatorio();
+                    gatoPresente = { ...nuevo, nombre: null };
+                    zonaNombre.style.display = "block";
+                    nombreGatoInput.value = "";
+                    nombreGatoInput.focus();
+                    refrescarGatoEnCanvas();
+                    mostrarMensaje(`✨ ¡Llegó un gato ${nuevo.rareza}! (${nuevo.puntuacion} pts)`);
+                }
+                timeoutLlegada = null;
+            }, delay);
+        }
+        
+        function cancelarTimer() { if(timeoutLlegada) { clearTimeout(timeoutLlegada); timeoutLlegada = null; } }
+        
+        function renderizarColeccion() {
+            coleccionDiv.innerHTML = "";
+            if(coleccion.length === 0) { const v = document.createElement("div"); v.className = "vacio-coleccion"; v.textContent = "📦 sin gatos coleccionados"; coleccionDiv.appendChild(v); }
+            else for(let gato of coleccion) {
+                const cont = document.createElement("div"); cont.className = "gato-coleccionado";
+                const mini = document.createElement("canvas"); mini.width = 70; mini.height = 70;
+                dibujarGatoEnContexto(mini.getContext("2d"), 70, 70, gato.colores);
+                const nom = document.createElement("div"); nom.className = "nombre"; nom.textContent = gato.nombre;
+                const rz = document.createElement("div"); rz.className = "rareza-texto"; rz.textContent = `${gato.rareza} ${gato.puntuacion}pts`;
+                cont.appendChild(mini); cont.appendChild(nom); cont.appendChild(rz);
+                coleccionDiv.appendChild(cont);
+            }
+            btnMinijuego.disabled = (coleccion.length < 2);
+        }
+        
+        function ponerNombreYColeccionar() {
+            if(!gatoPresente) return;
+            const nom = nombreGatoInput.value.trim();
+            if(nom === "") return;
+            coleccion.push({ nombre: nom.slice(0,20), colores: { ...gatoPresente.colores }, rareza: gatoPresente.rareza, puntuacion: gatoPresente.puntuacion });
+            gatoPresente = null;
+            zonaNombre.style.display = "none";
+            nombreGatoInput.value = "";
+            limpiarCanvas();
+            consumirDuracionComida();
+            cancelarTimer();
+            if(comidaActualObj && comidaActualObj.duracionRestante > 0) programarLlegada();
+            renderizarColeccion();
+            mostrarMensaje(`🐱 ¡${nom} coleccionado!`);
+        }
+        
+        function fusionar() {
+            const rarezas = ["Común","Medio","Bueno","Épico","Legendario"];
+            for(let idx=0; idx<rarezas.length-1; idx++) {
+                const actual = rarezas[idx], sig = rarezas[idx+1];
+                const filtrados = coleccion.filter(g => g.rareza === actual);
+                if(filtrados.length >= 3) {
+                    let elim = [];
+                    let c=0;
+                    for(let i=0; i<coleccion.length && c<3; i++) if(coleccion[i].rareza === actual) { elim.push(i); c++; }
+                    for(let i=elim.length-1; i>=0; i--) coleccion.splice(elim[i],1);
+                    let nuevaPunt = sig==="Medio"?65 : sig==="Bueno"?75 : sig==="Épico"?85 : 95;
+                    const nuevo = generarGatoConPuntuacion(nuevaPunt);
+                    coleccion.push({ nombre: `Fusión ${sig}`, colores: nuevo.colores, rareza: sig, puntuacion: nuevaPunt });
+                    renderizarColeccion();
+                    mostrarMensaje(`✨ Fusión: 3x${actual} → 1x${sig}`);
+                    return;
+                }
+            }
+            mostrarMensaje("❌ Necesitas 3 gatos de la misma rareza");
+        }
+        
+        // ==================== MINIJUEGO 1: PARES ====================
+        let juegoCards=[], lock=false, firstIdx=null, timeoutId=null, wrong1=null, wrong2=null, gameWin=false;
+        function ultraMezcla(arr) { let r=[...arr]; for(let p=0;p<2;p++) for(let i=r.length-1;i>0;i--) { let j=Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]]; } for(let k=0;k<r.length*3;k++) { let i=Math.floor(Math.random()*r.length), j=Math.floor(Math.random()*r.length); [r[i],r[j]]=[r[j],r[i]]; } const corte=Math.floor(Math.random()*r.length); r=[...r.slice(corte),...r.slice(0,corte)]; if(Math.random()>0.5){ let ini=Math.floor(Math.random()*r.length), fin=Math.floor(Math.random()*(r.length-ini))+ini; let sub=r.slice(ini,fin).reverse(); r.splice(ini,fin-ini,...sub); } return r; }
+        function generarMiniatura(gato,w,h){ let c=document.createElement("canvas"); c.width=w; c.height=h; dibujarGatoEnContexto(c.getContext("2d"),w,h,gato.colores); return c; }
+        function initJuegoPares(){
+            if(timeoutId) clearTimeout(timeoutId);
+            lock=false; firstIdx=null; wrong1=wrong2=null; gameWin=false;
+            if(coleccion.length<2) return;
+            let gatosUsar=coleccion.slice(0,Math.min(coleccion.length,8));
+            let base=[];
+            for(let g of gatosUsar){ base.push({gato:g,matched:false,flipped:false}); base.push({gato:g,matched:false,flipped:false}); }
+            juegoCards=ultraMezcla(base);
+            let cols=Math.min(4,Math.ceil(Math.sqrt(juegoCards.length)));
+            renderJuegoPares(gatosUsar.length,cols);
+        }
+        function renderJuegoPares(totalPares,cols){
+            let completadas=juegoCards.filter(c=>c.matched).length/2;
+            let win=(completadas===totalPares && !gameWin);
+            if(win){ gameWin=true; let ganados=totalPares*3; puntos+=ganados; actualizarPuntosUI(); renderizarDropdownComidas(); }
+            let html=`<div class="board" style="grid-template-columns: repeat(${cols}, minmax(70px,85px));">`;
+            for(let i=0;i<juegoCards.length;i++){
+                let c=juegoCards[i];
+                let cls='card';
+                if(c.flipped||c.matched) cls+=' flipped';
+                if(c.matched) cls+=' matched';
+                if((wrong1===i||wrong2===i)&&!c.matched) cls+=' wrong';
+                html+=`<div class="${cls}" onclick="window.juegoParesClick(${i})">`;
+                if(c.flipped||c.matched){
+                    let mini=generarMiniatura(c.gato,72,72);
+                    html+=`<img src="${mini.toDataURL()}" style="width:72px;height:72px;">`;
+                }
+                html+=`</div>`;
+            }
+            html+=`</div>`;
+            if(win) html+=`<div class="victoria-mensaje">🎉 VICTORIA! +${totalPares*3}🪙 🎉</div><div class="puntos-victoria">🪙 TOTAL: ${puntos}</div><div><button id="btnNuevoJuegoPares">🔄 Nuevo juego</button><button id="btnVolverMenuPares" class="volver-btn">🏠 Volver</button></div>`;
+            else html+=`<div id="statusJuegoPares"></div><div>🪙 Puntos: ${puntos}</div><div><button id="btnResetJuegoPares">🔄 Nuevo juego</button><button id="btnVolverMenuPares2" class="volver-btn">🏠 Volver</button></div>`;
+            modalContent.innerHTML=html;
+            if(!win){ let st=document.getElementById("statusJuegoPares"); if(st) st.innerText=`Parejas: ${completadas}/${totalPares}`; }
+            document.getElementById("btnResetJuegoPares")?.addEventListener("click",()=>initJuegoPares());
+            document.getElementById("btnNuevoJuegoPares")?.addEventListener("click",()=>initJuegoPares());
+            document.getElementById("btnVolverMenuPares")?.addEventListener("click",()=>cerrarModal());
+            document.getElementById("btnVolverMenuPares2")?.addEventListener("click",()=>cerrarModal());
+        }
+        window.juegoParesClick=function(idx){
+            if(lock||gameWin) return;
+            let card=juegoCards[idx];
+            if(card.matched||card.flipped) return;
+            if(firstIdx===null){
+                card.flipped=true; firstIdx=idx;
+                let num=Math.min(coleccion.length,8), cols=Math.min(4,Math.ceil(Math.sqrt(num*2)));
+                renderJuegoPares(num,cols); return;
+            }
+            if(firstIdx===idx) return;
+            let card2=juegoCards[firstIdx];
+            card.flipped=true;
+            let num=Math.min(coleccion.length,8), cols=Math.min(4,Math.ceil(Math.sqrt(num*2)));
+            renderJuegoPares(num,cols);
+            if(card2.gato===card.gato){
+                card2.matched=true; card.matched=true; firstIdx=null;
+                renderJuegoPares(num,cols);
+            } else {
+                lock=true; wrong1=firstIdx; wrong2=idx;
+                renderJuegoPares(num,cols);
+                timeoutId=setTimeout(()=>{
+                    if(!juegoCards[firstIdx].matched) juegoCards[firstIdx].flipped=false;
+                    if(!juegoCards[idx].matched) juegoCards[idx].flipped=false;
+                    firstIdx=null; lock=false; wrong1=wrong2=null;
+                    renderJuegoPares(num,cols);
+                    timeoutId=null;
+                },600);
+            }
+        };
+        
+        // ==================== MINIJUEGO 2: GATO COME (arrastrar) ====================
+        let gatoComeInterval = null;
+        let gatoComeAnimationId = null;
+        
+        function iniciarGatoCome() {
+            modalContent.innerHTML = `
+                <div class="gato-come-container">
+                    <div class="gato-come-panel">
+                        <div class="gato-come-box">🍴 <span id="gcScore">0</span></div>
+                        <div class="gato-come-box">❤️ <span id="gcLives">3</span></div>
+                        <button class="gato-come-btn" id="gcPause">⏸️</button>
+                        <button class="gato-come-btn" id="gcReset">🔄</button>
+                        <div class="gato-come-status" id="gcStatus">▶</div>
+                    </div>
+                    <canvas id="gcCanvas" class="gato-come-canvas" width="400" height="500"></canvas>
+                    <div class="gato-come-hint">🐱 ARRASTRA (sin salto inicial) | 🟢+1 🔴-1 | ⚠️ comida perdida = -1</div>
+                    <div style="margin-top: 10px;"><button id="gcVolver" class="volver-btn">🏠 Volver al menú</button></div>
+                </div>
+            `;
+            
+            // Configurar el juego después de crear el DOM
+            const gcCanvas = document.getElementById('gcCanvas');
+            const gcCtx = gcCanvas.getContext('2d');
+            const W = 400, H = 500, CW = 50, CH = 50, CY = H - 74;
+            let gcX = W/2 - CW/2;
+            let gcItems = [];
+            let gcScore = 0;
+            let gcLives = 3;
+            let gcGameOver = false;
+            let gcPaused = false;
+            let gcFrameCount = 0;
+            let gcSpeed = 2.3;
+            let gcDragging = false;
+            let gcLastX = 0;
+            
+            const G_EMOJIS = ['🍕','🍔','🍎','🍌','🥪','🥨','🍣','🍜','🌮','🥗','🍦','🥟','🥘','🦞','🍖','🥧','🎂','🌟','🌈','⭐','🍲','🍛','🥩','🍉','🍒','🍫','🍩','🧁'];
+            const M_EMOJIS = ['💀','☠️','💣','🧨','🕷️','🦂','🧪','⚡','🔪','💊','👹','😈','💩','🤢','🗡️','🕸️','💉','☣️','💔'];
+            
+            const gcScoreSpan = document.getElementById('gcScore');
+            const gcLivesSpan = document.getElementById('gcLives');
+            const gcStatusSpan = document.getElementById('gcStatus');
+            
+            function updateUI() {
+                gcScoreSpan.innerText = gcScore;
+                gcLivesSpan.innerText = gcLives;
+                gcStatusSpan.innerText = gcGameOver ? '💀' : gcPaused ? '⏸️' : '▶';
+                gcStatusSpan.style.color = gcGameOver ? '#f88' : gcPaused ? '#fa0' : '#afa';
+            }
+            
+            function loseLife() {
+                if (!gcGameOver && !gcPaused) {
+                    gcLives--;
+                    if (gcLives <= 0) {
+                        gcLives = 0;
+                        gcGameOver = true;
+                        // Dar puntos de consolación
+                        puntos += Math.floor(gcScore / 2);
+                        actualizarPuntosUI();
+                        renderizarDropdownComidas();
+                        mostrarMensaje(`🎮 Gato Come terminado! +${Math.floor(gcScore/2)} puntos por ${gcScore} comida`);
+                    }
+                    updateUI();
+                }
+            }
+            
+            function spawnItem() {
+                let isGood = Math.random() < 0.7;
+                let itemsList = isGood ? G_EMOJIS : M_EMOJIS;
+                gcItems.push({
+                    x: Math.random() * (W - 42),
+                    y: -42,
+                    e: itemsList[Math.floor(Math.random() * itemsList.length)],
+                    t: isGood ? 1 : 0,
+                    w: 42,
+                    h: 42
+                });
+            }
+            
+            function updateGame() {
+                if (gcGameOver || gcPaused) return;
+                
+                for (let item of gcItems) item.y += gcSpeed;
+                
+                const gatoRect = { x: gcX, y: CY, w: CW, h: CH };
+                
+                for (let i = gcItems.length - 1; i >= 0; i--) {
+                    let it = gcItems[i];
+                    let col = (it.x < gatoRect.x + gatoRect.w && it.x + it.w > gatoRect.x &&
+                               it.y < gatoRect.y + gatoRect.h && it.y + it.h > gatoRect.y);
+                    if (col) {
+                        if (it.t) {
+                            gcScore++;
+                        } else {
+                            loseLife();
+                        }
+                        gcItems.splice(i, 1);
+                        updateUI();
+                        if (gcGameOver) return;
+                    } else if (it.y >= H) {
+                        if (it.t) loseLife();
+                        gcItems.splice(i, 1);
+                        updateUI();
+                        if (gcGameOver) return;
+                    }
+                }
+                
+                gcSpeed = Math.min(6.8, 2.3 + Math.floor(gcScore / 20) * 0.4);
+            }
+            
+            function drawGame() {
+                gcCtx.clearRect(0, 0, W, H);
+                
+                // Dibujar línea del suelo
+                gcCtx.beginPath();
+                gcCtx.moveTo(0, CY + CH - 6);
+                gcCtx.lineTo(W, CY + CH - 6);
+                gcCtx.strokeStyle = "#c0a070";
+                gcCtx.lineWidth = 2;
+                gcCtx.stroke();
+                
+                // Dibujar items
+                for (let it of gcItems) {
+                    let cx = it.x + it.w/2, cy = it.y + it.h/2, r = it.w/2 + 5;
+                    gcCtx.beginPath();
+                    gcCtx.arc(cx, cy, r, 0, Math.PI * 2);
+                    gcCtx.fillStyle = it.t ? 'rgba(60,210,60,0.65)' : 'rgba(230,60,60,0.75)';
+                    gcCtx.fill();
+                    gcCtx.beginPath();
+                    gcCtx.arc(cx, cy, r, 0, Math.PI * 2);
+                    gcCtx.strokeStyle = it.t ? '#2e7d32' : '#b71c1c';
+                    gcCtx.lineWidth = 1.5;
+                    gcCtx.stroke();
+                    gcCtx.font = '40px "Segoe UI Emoji"';
+                    gcCtx.textAlign = 'center';
+                    gcCtx.textBaseline = 'middle';
+                    gcCtx.fillStyle = '#000';
+                    gcCtx.fillText(it.e, cx, cy);
+                }
+                
+                // Dibujar gato
+                gcCtx.font = '58px "Segoe UI Emoji"';
+                gcCtx.fillText('🐱', gcX + CW/2, CY + CH/2);
+                
+                // Textos de ayuda
+                if (!gcGameOver && !gcPaused) {
+                    gcCtx.font = 'bold 9px monospace';
+                    gcCtx.fillStyle = '#a53';
+                    gcCtx.fillText("⚠️ comida perdida = -1 vida", 6, 20);
+                    gcCtx.fillStyle = '#2c6e2c';
+                    gcCtx.fillText("🟢+1 | 🔴-1", 6, 36);
+                    gcCtx.fillStyle = '#555';
+                    gcCtx.textAlign = 'right';
+                    gcCtx.fillText(`⚡${gcSpeed.toFixed(1)}`, W - 8, 24);
+                }
+                
+                if (gcGameOver) {
+                    gcCtx.fillStyle = 'rgba(0,0,0,0.88)';
+                    gcCtx.fillRect(0, 0, W, H);
+                    gcCtx.fillStyle = 'white';
+                    gcCtx.font = 'bold 26px system-ui';
+                    gcCtx.textAlign = 'center';
+                    gcCtx.fillText("💀 GAME OVER 💀", W/2, H/2 - 40);
+                    gcCtx.font = '16px system-ui';
+                    gcCtx.fillStyle = '#fc8';
+                    gcCtx.fillText("Presiona Reiniciar", W/2, H/2 + 20);
+                } else if (gcPaused) {
+                    gcCtx.fillStyle = 'rgba(0,0,0,0.7)';
+                    gcCtx.fillRect(0, 0, W, H);
+                    gcCtx.fillStyle = 'white';
+                    gcCtx.font = 'bold 28px system-ui';
+                    gcCtx.fillText("⏸️ PAUSADO", W/2, H/2 - 20);
+                    gcCtx.font = '12px monospace';
+                    gcCtx.fillStyle = '#ccc';
+                    gcCtx.fillText("Arrastra para mover", W/2, H/2 + 30);
+                }
+            }
+            
+            function moveGato(clientX) {
+                if (gcGameOver || gcPaused || !gcDragging) return;
+                let dx = clientX - gcLastX;
+                if (dx) {
+                    let newX = gcX + dx;
+                    gcX = Math.min(Math.max(newX, 0), W - CW);
+                    gcLastX = clientX;
+                }
+            }
+            
+            // Eventos para arrastrar
+            const handleMouseMove = (e) => { if (gcDragging) { e.preventDefault(); moveGato(e.clientX); } };
+            const handleMouseDown = (e) => { e.preventDefault(); gcDragging = true; gcLastX = e.clientX; };
+            const handleMouseUp = () => { gcDragging = false; };
+            const handleTouchStart = (e) => { e.preventDefault(); gcDragging = true; if (e.touches.length) gcLastX = e.touches[0].clientX; };
+            const handleTouchMove = (e) => { e.preventDefault(); if (gcDragging && e.touches.length) moveGato(e.touches[0].clientX); };
+            const handleTouchEnd = (e) => { e.preventDefault(); gcDragging = false; };
+            
+            gcCanvas.addEventListener('mousemove', handleMouseMove);
+            gcCanvas.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mouseup', handleMouseUp);
+            gcCanvas.addEventListener('touchstart', handleTouchStart);
+            gcCanvas.addEventListener('touchmove', handleTouchMove);
+            gcCanvas.addEventListener('touchend', handleTouchEnd);
+            gcCanvas.addEventListener('touchcancel', handleTouchEnd);
+            gcCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            
+            function resetGame() {
+                gcGameOver = false;
+                gcPaused = false;
+                gcScore = 0;
+                gcLives = 3;
+                gcItems = [];
+                gcFrameCount = 0;
+                gcSpeed = 2.3;
+                gcX = W/2 - CW/2;
+                updateUI();
+                for (let i = 0; i < 3; i++) spawnItem();
+            }
+            
+            function pauseGame() {
+                if (!gcGameOver) gcPaused = !gcPaused;
+                updateUI();
+            }
+            
+            // Game loop
+            let lastSpawn = 0;
+            function gameLoop() {
+                if (!document.getElementById('gcCanvas')) return;
+                updateGame();
+                drawGame();
+                if (!gcGameOver && !gcPaused) {
+                    if (++gcFrameCount % Math.max(15, 30 - Math.floor(gcScore / 35)) === 0) {
+                        spawnItem();
+                    }
+                }
+                gatoComeAnimationId = requestAnimationFrame(gameLoop);
+            }
+            
+            resetGame();
+            gameLoop();
+            
+            // Botones
+            document.getElementById('gcPause').onclick = pauseGame;
+            document.getElementById('gcReset').onclick = resetGame;
+            document.getElementById('gcVolver').onclick = () => {
+                if (gatoComeAnimationId) cancelAnimationFrame(gatoComeAnimationId);
+                gcCanvas.removeEventListener('mousemove', handleMouseMove);
+                gcCanvas.removeEventListener('mousedown', handleMouseDown);
+                window.removeEventListener('mouseup', handleMouseUp);
+                gcCanvas.removeEventListener('touchstart', handleTouchStart);
+                gcCanvas.removeEventListener('touchmove', handleTouchMove);
+                gcCanvas.removeEventListener('touchend', handleTouchEnd);
+                gcCanvas.removeEventListener('touchcancel', handleTouchEnd);
+                cerrarModal();
+            };
+        }
+        
+        // ==================== MENÚ PRINCIPAL DE MINIJUEGOS ====================
+        function abrirModal() { 
+            if(coleccion.length < 2) {
+                mostrarMensaje("Necesitas al menos 2 gatos para jugar");
+                return;
+            }
+            modalContent.innerHTML = `
+                <div class="menu-minijuego">
+                    <h3>🎮 Selecciona un Minijuego</h3>
+                    <div class="puntuacion-menu">🪙 PUNTOS: ${puntos}</div>
+                    <button id="btnPar" class="btn-par">🃏 PARES (memoria con tus gatos)</button>
+                    <button id="btnGatoCome" class="btn-gato-come">🐱 GATO COME (arrastra para atrapar)</button>
+                    <button id="btnCerrarMenu" class="volver-btn">❌ Cerrar</button>
+                </div>
+            `;
+            document.getElementById("btnPar")?.addEventListener("click", () => { 
+                if(coleccion.length >= 2) initJuegoPares(); 
+                else { mostrarMensaje("Necesitas 2+ gatos"); abrirModal(); }
+            });
+            document.getElementById("btnGatoCome")?.addEventListener("click", () => { iniciarGatoCome(); });
+            document.getElementById("btnCerrarMenu")?.addEventListener("click", () => cerrarModal());
+            modal.style.display = "flex";
+        }
+        
+        function cerrarModal() { 
+            if(timeoutId) clearTimeout(timeoutId);
+            modal.style.display = "none"; 
+        }
+        
+        // Eventos
+        btnPonerNombre.onclick = ponerNombreYColeccionar;
+        btnFusionar.onclick = fusionar;
+        btnMinijuego.onclick = abrirModal;
+        nombreGatoInput.addEventListener("keypress", (e) => { if(e.key==="Enter" && gatoPresente) ponerNombreYColeccionar(); });
+        
+        function init() {
+            puntos = 50;
+            comidaActualObj = null;
+            gatoPresente = null;
+            coleccion = [];
+            actualizarPuntosUI();
+            actualizarPlatoUI();
+            limpiarCanvas();
+            zonaNombre.style.display = "none";
+            renderizarColeccion();
+            cancelarTimer();
+            renderizarDropdownComidas();
+        }
+        init();
+    })();
+</script>
+</body>
+</html>
